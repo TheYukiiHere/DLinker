@@ -108,5 +108,9 @@ cmake --build build --target flink-agent
 Le journal doit afficher `resolution envoyee 1920x1080` si la configuration
 contient `screen_width=0` et `screen_height=0`.
 
+Le client Windows et l’agent Lubuntu doivent être reconstruits depuis le même
+commit. Le protocole actuel est la version 2 ; si Lubuntu affiche
+`version incompatible`, reconstruisez aussi le client Windows.
+
 La capture complète peut produire un trafic important : par exemple
 1920x1080 en BGRA représente environ 8 Mo par image, avant compression.

@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <algorithm>
+#include <functional>
 #include <thread>
 #include <chrono>
 #include <atomic>
@@ -154,6 +155,25 @@ bool receivePacket(int socketHandle, flink::PacketHeader& header,
     return payload.empty() || receiveAll(socketHandle, payload.data(), payload.size());
 }
 
+bool receiveExpected(int socketHandle, flink::PacketHeader& header,
+                     std::vector<std::uint8_t>& payload, flink::PacketType expected,
+                     const std::function<void(const std::string&)>& report)
+{
+    if (!receivePacket(socketHandle, header, payload)) {
+        report("FLink: paquet illisible ou version incompatible");
+        return false;
+    }
+    const auto expectedType = static_cast<std::uint16_t>(expected);
+    if (header.type != expectedType) {
+        report("FLink: type inattendu, recu " + std::to_string(header.type) +
+               ", attendu " + std::to_string(expectedType) +
+               ", version " + std::to_string(header.version) +
+               ", taille " + std::to_string(header.payloadSize));
+        return false;
+    }
+    return true;
+}
+
 void append(std::vector<std::uint8_t>& data, const void* value, std::size_t size)
 {
     const auto* bytes = static_cast<const std::uint8_t*>(value);
@@ -289,13 +309,10 @@ int main(int argc, char** argv)
         report("FLink: client connecte");
         flink::PacketHeader request{};
         std::vector<std::uint8_t> payload;
-        if (!receivePacket(client, request, payload) ||
-            request.type != static_cast<std::uint16_t>(flink::PacketType::Hello) ||
-            !receivePacket(client, request, payload) ||
-            request.type != static_cast<std::uint16_t>(flink::PacketType::Ping) ||
+        if (!receiveExpected(client, request, payload, flink::PacketType::Hello, report) ||
+            !receiveExpected(client, request, payload, flink::PacketType::Ping, report) ||
             !sendPacket(client, flink::PacketType::Pong, request.sequence) ||
-            !receivePacket(client, request, payload) ||
-            request.type != static_cast<std::uint16_t>(flink::PacketType::Manifest)) {
+            !receiveExpected(client, request, payload, flink::PacketType::Manifest, report)) {
             report("FLink: negociation invalide");
             close(client);
             continue;

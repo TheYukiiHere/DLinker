@@ -342,7 +342,8 @@ int main(int argc, char** argv)
     std::filesystem::create_directories(root);
     debugMessage(kBlue, "configuration " + (flink::hasConfig(configPath.string())
         ? std::filesystem::absolute(configPath).string() : "defaut") +
-        ", cible " + config.ip + ":" + std::to_string(config.port));
+        ", cible " + config.ip + ":" + std::to_string(config.port) +
+        ", protocole v" + std::to_string(flink::kVersion));
     Socket socketHandle = connectToLinux(config);
     bool connected = socketHandle != kInvalidSocket;
     std::string status = connected ? "Connecte a Lubuntu" : "Lubuntu non joignable";
