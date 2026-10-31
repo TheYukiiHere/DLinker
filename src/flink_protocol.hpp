@@ -6,7 +6,7 @@ namespace flink {
 
 constexpr std::uint16_t kPort = 5002;
 constexpr std::uint32_t kMagic = 0x464C4E4B; // "FLNK"
-constexpr std::uint16_t kVersion = 3;
+constexpr std::uint16_t kVersion = 4;
 
 #pragma pack(push, 1)
 struct PacketHeader {
@@ -57,6 +57,7 @@ struct InputInfo {
     std::int32_t absoluteX;
     std::int32_t absoluteY;
     std::uint8_t hasAbsolutePosition;
+    std::uint8_t shift;
 };
 #pragma pack(pop)
 

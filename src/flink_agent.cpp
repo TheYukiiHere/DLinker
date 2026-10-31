@@ -103,6 +103,39 @@ bool sendVideoFrame(int socketHandle, std::uint32_t sequence, Display* display,
 #endif
 
 #if defined(FLINK_HAS_X11) && defined(FLINK_HAS_XTEST)
+unsigned int azertyKeycode(std::uint16_t key)
+{
+    switch (key) {
+    case 'a': return 38; // A key on an AZERTY keyboard
+    case 'z': return 25;
+    case 'e': return 26;
+    case 'r': return 27;
+    case 't': return 28;
+    case 'y': return 29;
+    case 'u': return 30;
+    case 'i': return 31;
+    case 'o': return 32;
+    case 'p': return 33;
+    case 'q': return 24;
+    case 's': return 39;
+    case 'd': return 40;
+    case 'f': return 41;
+    case 'g': return 42;
+    case 'h': return 43;
+    case 'j': return 44;
+    case 'k': return 45;
+    case 'l': return 46;
+    case 'm': return 47;
+    case 'w': return 52;
+    case 'x': return 53;
+    case 'c': return 54;
+    case 'v': return 55;
+    case 'b': return 56;
+    case 'n': return 57;
+    default: return key;
+    }
+}
+
 void injectInput(Display* display, const flink::InputInfo& input)
 {
     if (input.hasAbsolutePosition) {
@@ -116,8 +149,14 @@ void injectInput(Display* display, const flink::InputInfo& input)
         XTestFakeMotionEvent(display, -1, rootX + input.mouseDx, rootY + input.mouseDy, CurrentTime);
     }
     if (input.key != 0) {
-        XTestFakeKeyEvent(display, static_cast<unsigned int>(input.key),
-                          input.keyDown != 0, CurrentTime);
+        const auto keycode = azertyKeycode(input.key);
+        if (input.shift != 0) {
+            XTestFakeKeyEvent(display, 50, True, CurrentTime);
+        }
+        XTestFakeKeyEvent(display, keycode, input.keyDown != 0, CurrentTime);
+        if (input.shift != 0) {
+            XTestFakeKeyEvent(display, 50, False, CurrentTime);
+        }
     }
     if (input.mouseButton != 0) {
         XTestFakeButtonEvent(display, input.mouseButton, input.buttonDown != 0, CurrentTime);

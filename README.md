@@ -87,11 +87,11 @@ Les paramètres sont dans [flink.conf.txt](./flink.conf.txt), copié dans le
 dossier `FLink` si nécessaire : IP, port, largeur/hauteur (`0` = écran
 complet), FPS, audio et entrées. Le client envoie les mouvements de souris
 et les touches lorsque la fenêtre est active.
-La fenêtre Windows est en plein écran. Les coordonnées souris sont converties
+La fenêtre Windows est en plein écran. Le raccourci de minimisation est
+`Ctrl` + `Shift` + `D`. Les coordonnées souris sont converties
 depuis la zone réellement rendue vers les coordonnées de l’écran Linux, même
-si les proportions diffèrent. `physical_keyboard=true` transmet les positions
-physiques des touches : cela évite de mélanger les dispositions QWERTY
-Windows et AZERTY Linux.
+si les proportions diffèrent. Les lettres Windows sont converties vers les
+touches correspondantes du clavier AZERTY Linux.
 
 Copiez ce fichier dans les deux dossiers FLink avant le lancement :
 
@@ -119,7 +119,7 @@ cache indique encore qu’ils sont absents, supprimez `build` avant de relancer
 CMake.
 
 Le client Windows et l’agent Lubuntu doivent être reconstruits depuis le même
-commit. Le protocole actuel est la version 3 ; si Lubuntu affiche
+commit. Le protocole actuel est la version 4 ; si Lubuntu affiche
 `version incompatible`, reconstruisez aussi le client Windows.
 
 Le deuxième argument après le dossier `FLink` est le chemin explicite du

@@ -436,15 +436,16 @@ int main(int argc, char** argv)
             } else if (event.type == SDL_EVENT_KEY_DOWN &&
                        event.key.key == SDLK_D &&
                        (event.key.mod & SDL_KMOD_CTRL) != 0 &&
-                       (event.key.mod & SDL_KMOD_GUI) != 0) {
+                          (event.key.mod & SDL_KMOD_SHIFT) != 0) {
                 SDL_MinimizeWindow(window);
             } else if (connected && config.input &&
                        (event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP)) {
                 const flink::InputInfo input{
                     0, 0, 0, static_cast<std::uint8_t>(
                         event.type == SDL_EVENT_KEY_DOWN ? 1 : 0),
-                    static_cast<std::uint16_t>(event.key.scancode + 8),
-                    0, 0, 0, 0, 0
+                    static_cast<std::uint16_t>(event.key.key),
+                    0, 0, 0, 0, static_cast<std::uint8_t>(
+                        (event.key.mod & SDL_KMOD_SHIFT) != 0)
                 };
                 sendInput(socketHandle, input, inputSequence++);
             } else if (connected && config.input && event.type == SDL_EVENT_MOUSE_MOTION) {
