@@ -28,7 +28,7 @@ Le deuxième argument est le dossier FLink local. Utilisez un chemin absolu si
 vous lancez l'exécutable par double-clic :
 
 ```powershell
-.\build\DLinkerSDL3.exe C:\path\to\DLinker\FLink
+.\build\DLinkerSDL3.exe C:\path\to\DLinker\FLink C:\path\to\DLinker\flink.conf.txt
 ```
 
 Le chemin utilisé et chaque étape sont écrits dans `FLink/sync.log`.
@@ -46,7 +46,7 @@ rm -rf build
 cmake -S . -B build -G "Unix Makefiles" -DDLINKER_BUILD_CLIENT=OFF
 cmake --build build --target flink-agent
 mkdir -p "$HOME/FLink"
-./build/flink-agent "$HOME/FLink"
+./build/flink-agent "$HOME/FLink" "$HOME/Desktop/DLinker/flink.conf.txt"
 ```
 
 `/chemin/vers/FLink` était uniquement un exemple : remplacez-le par le
@@ -119,8 +119,13 @@ cache indique encore qu’ils sont absents, supprimez `build` avant de relancer
 CMake.
 
 Le client Windows et l’agent Lubuntu doivent être reconstruits depuis le même
-commit. Le protocole actuel est la version 2 ; si Lubuntu affiche
+commit. Le protocole actuel est la version 3 ; si Lubuntu affiche
 `version incompatible`, reconstruisez aussi le client Windows.
+
+Le deuxième argument après le dossier `FLink` est le chemin explicite du
+fichier de configuration. Le programme affiche le chemin utilisé au démarrage.
+Sans cet argument, il cherche d’abord `FLink/flink.conf.txt`, puis
+`flink.conf.txt` dans le dossier courant.
 
 La capture complète peut produire un trafic important : par exemple
 1920x1080 en BGRA représente environ 8 Mo par image, avant compression.

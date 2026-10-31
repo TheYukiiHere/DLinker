@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fstream>
+#include <filesystem>
 #include <string>
 
 namespace flink {
@@ -47,6 +48,22 @@ inline Config loadConfig(const std::string& path)
 inline bool hasConfig(const std::string& path)
 {
     return static_cast<bool>(std::ifstream(path));
+}
+
+inline std::string resolveConfigPath(const std::string& explicitPath,
+                                     const std::string& rootPath)
+{
+    if (!explicitPath.empty() && hasConfig(explicitPath)) {
+        return explicitPath;
+    }
+    const auto rootConfig = std::filesystem::path(rootPath) / "flink.conf.txt";
+    if (hasConfig(rootConfig.string())) {
+        return rootConfig.string();
+    }
+    if (hasConfig("flink.conf.txt")) {
+        return "flink.conf.txt";
+    }
+    return {};
 }
 
 } // namespace flink

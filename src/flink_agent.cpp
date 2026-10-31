@@ -262,7 +262,9 @@ int main(int argc, char** argv)
 {
     const std::filesystem::path root =
         argc > 1 ? std::filesystem::path(argv[1]) : std::filesystem::current_path() / "FLink";
-    const auto config = flink::loadConfig((root / "flink.conf.txt").string());
+    const std::string requestedConfig = argc > 2 ? argv[2] : "";
+    const auto configPath = flink::resolveConfigPath(requestedConfig, root.string());
+    const auto config = flink::loadConfig(configPath);
     std::filesystem::create_directories(root);
     const int server = socket(AF_INET, SOCK_STREAM, 0);
     if (server < 0) return 1;
@@ -292,9 +294,9 @@ int main(int argc, char** argv)
     };
     report("FLink agent actif sur le port " + std::to_string(flink::kPort) +
            ", dossier " + root.string());
-    report("FLink: config " + (flink::hasConfig((root / "flink.conf.txt").string())
-        ? root.string() + "/flink.conf.txt"
-        : "defaut") + ", resolution demandee " +
+    report("FLink: config " + (configPath.empty()
+        ? "defaut" : std::filesystem::absolute(configPath).string()) +
+        ", resolution demandee " +
         std::to_string(config.screenWidth) + "x" + std::to_string(config.screenHeight) +
         ", FPS " + std::to_string(config.fps));
 #ifndef FLINK_HAS_X11

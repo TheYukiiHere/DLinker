@@ -336,12 +336,12 @@ int main(int argc, char** argv)
 
     const std::filesystem::path root =
         argc > 1 ? std::filesystem::path(argv[1]) : std::filesystem::current_path() / "FLink";
-    const auto configPath = root / "flink.conf.txt";
-    const auto config = flink::loadConfig(
-        std::filesystem::exists(configPath) ? configPath.string() : "flink.conf.txt");
     std::filesystem::create_directories(root);
-    debugMessage(kBlue, "configuration " + (flink::hasConfig(configPath.string())
-        ? std::filesystem::absolute(configPath).string() : "defaut") +
+    const std::string requestedConfig = argc > 2 ? argv[2] : "";
+    const auto configPath = flink::resolveConfigPath(requestedConfig, root.string());
+    const auto config = flink::loadConfig(configPath);
+    debugMessage(kBlue, "configuration " + (configPath.empty()
+        ? "defaut" : std::filesystem::absolute(configPath).string()) +
         ", cible " + config.ip + ":" + std::to_string(config.port) +
         ", protocole v" + std::to_string(flink::kVersion));
     Socket socketHandle = connectToLinux(config);
