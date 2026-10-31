@@ -20,6 +20,7 @@
 #ifdef FLINK_HAS_X11
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/keysym.h>
 #ifdef FLINK_HAS_XTEST
 #include <X11/extensions/XTest.h>
 #endif
@@ -103,39 +104,6 @@ bool sendVideoFrame(int socketHandle, std::uint32_t sequence, Display* display,
 #endif
 
 #if defined(FLINK_HAS_X11) && defined(FLINK_HAS_XTEST)
-unsigned int azertyKeycode(std::uint16_t key)
-{
-    switch (key) {
-    case 'a': return 38; // A key on an AZERTY keyboard
-    case 'z': return 25;
-    case 'e': return 26;
-    case 'r': return 27;
-    case 't': return 28;
-    case 'y': return 29;
-    case 'u': return 30;
-    case 'i': return 31;
-    case 'o': return 32;
-    case 'p': return 33;
-    case 'q': return 24;
-    case 's': return 39;
-    case 'd': return 40;
-    case 'f': return 41;
-    case 'g': return 42;
-    case 'h': return 43;
-    case 'j': return 44;
-    case 'k': return 45;
-    case 'l': return 46;
-    case 'm': return 47;
-    case 'w': return 52;
-    case 'x': return 53;
-    case 'c': return 54;
-    case 'v': return 55;
-    case 'b': return 56;
-    case 'n': return 57;
-    default: return key;
-    }
-}
-
 void injectInput(Display* display, const flink::InputInfo& input)
 {
     if (input.hasAbsolutePosition) {
@@ -148,14 +116,52 @@ void injectInput(Display* display, const flink::InputInfo& input)
         XQueryPointer(display, root, &root, &current, &rootX, &rootY, &winX, &winY, &mask);
         XTestFakeMotionEvent(display, -1, rootX + input.mouseDx, rootY + input.mouseDy, CurrentTime);
     }
-    if (input.key != 0) {
-        const auto keycode = azertyKeycode(input.key);
-        if (input.shift != 0) {
-            XTestFakeKeyEvent(display, 50, True, CurrentTime);
+    if (input.keyValue != 0) {
+        KeySym keysym = NoSymbol;
+        if (input.keyKind == static_cast<std::uint8_t>(flink::KeyKind::Character)) {
+            std::string text(1, static_cast<char>(input.keyValue));
+            keysym = XStringToKeysym(text.c_str());
+        } else {
+            switch (static_cast<flink::SpecialKey>(input.keyValue)) {
+            case flink::SpecialKey::Escape: keysym = XK_Escape; break;
+            case flink::SpecialKey::Enter: keysym = XK_Return; break;
+            case flink::SpecialKey::Backspace: keysym = XK_BackSpace; break;
+            case flink::SpecialKey::Tab: keysym = XK_Tab; break;
+            case flink::SpecialKey::Delete: keysym = XK_Delete; break;
+            case flink::SpecialKey::Insert: keysym = XK_Insert; break;
+            case flink::SpecialKey::Home: keysym = XK_Home; break;
+            case flink::SpecialKey::End: keysym = XK_End; break;
+            case flink::SpecialKey::PageUp: keysym = XK_Page_Up; break;
+            case flink::SpecialKey::PageDown: keysym = XK_Page_Down; break;
+            case flink::SpecialKey::Left: keysym = XK_Left; break;
+            case flink::SpecialKey::Right: keysym = XK_Right; break;
+            case flink::SpecialKey::Up: keysym = XK_Up; break;
+            case flink::SpecialKey::Down: keysym = XK_Down; break;
+            case flink::SpecialKey::F1: keysym = XK_F1; break;
+            case flink::SpecialKey::F2: keysym = XK_F2; break;
+            case flink::SpecialKey::F3: keysym = XK_F3; break;
+            case flink::SpecialKey::F4: keysym = XK_F4; break;
+            case flink::SpecialKey::F5: keysym = XK_F5; break;
+            case flink::SpecialKey::F6: keysym = XK_F6; break;
+            case flink::SpecialKey::F7: keysym = XK_F7; break;
+            case flink::SpecialKey::F8: keysym = XK_F8; break;
+            case flink::SpecialKey::F9: keysym = XK_F9; break;
+            case flink::SpecialKey::F10: keysym = XK_F10; break;
+            case flink::SpecialKey::F11: keysym = XK_F11; break;
+            case flink::SpecialKey::F12: keysym = XK_F12; break;
+            case flink::SpecialKey::LeftShift: keysym = XK_Shift_L; break;
+            case flink::SpecialKey::RightShift: keysym = XK_Shift_R; break;
+            case flink::SpecialKey::LeftCtrl: keysym = XK_Control_L; break;
+            case flink::SpecialKey::RightCtrl: keysym = XK_Control_R; break;
+            case flink::SpecialKey::LeftAlt: keysym = XK_Alt_L; break;
+            case flink::SpecialKey::RightAlt: keysym = XK_Alt_R; break;
+            case flink::SpecialKey::LeftGui: keysym = XK_Super_L; break;
+            case flink::SpecialKey::RightGui: keysym = XK_Super_R; break;
+            }
         }
-        XTestFakeKeyEvent(display, keycode, input.keyDown != 0, CurrentTime);
-        if (input.shift != 0) {
-            XTestFakeKeyEvent(display, 50, False, CurrentTime);
+        const auto keycode = XKeysymToKeycode(display, keysym);
+        if (keycode != 0) {
+            XTestFakeKeyEvent(display, keycode, input.keyDown != 0, CurrentTime);
         }
     }
     if (input.mouseButton != 0) {

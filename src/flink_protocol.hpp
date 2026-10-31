@@ -6,7 +6,7 @@ namespace flink {
 
 constexpr std::uint16_t kPort = 5002;
 constexpr std::uint32_t kMagic = 0x464C4E4B; // "FLNK"
-constexpr std::uint16_t kVersion = 4;
+constexpr std::uint16_t kVersion = 5;
 
 #pragma pack(push, 1)
 struct PacketHeader {
@@ -51,13 +51,22 @@ struct InputInfo {
     std::int32_t mouseDy;
     std::uint8_t mouseButtons;
     std::uint8_t keyDown;
-    std::uint16_t key;
+    std::uint32_t keyValue;
+    std::uint8_t keyKind;
     std::uint8_t mouseButton;
     std::uint8_t buttonDown;
     std::int32_t absoluteX;
     std::int32_t absoluteY;
     std::uint8_t hasAbsolutePosition;
-    std::uint8_t shift;
+    std::uint16_t modifiers;
+};
+
+enum class KeyKind : std::uint8_t { Character = 1, Special = 2 };
+enum class SpecialKey : std::uint32_t {
+    Escape = 1, Enter, Backspace, Tab, Delete, Insert, Home, End,
+    PageUp, PageDown, Left, Right, Up, Down,
+    F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
+    LeftShift, RightShift, LeftCtrl, RightCtrl, LeftAlt, RightAlt, LeftGui, RightGui
 };
 #pragma pack(pop)
 

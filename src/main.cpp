@@ -161,6 +161,54 @@ bool sendInput(Socket socket, const flink::InputInfo& input, std::uint32_t seque
     return sendPacket(socket, flink::PacketType::Input, sequence, payload);
 }
 
+std::pair<std::uint32_t, flink::KeyKind> logicalKey(SDL_Keycode key)
+{
+    if (key >= 32 && key <= 126) {
+        return {static_cast<std::uint32_t>(key), flink::KeyKind::Character};
+    }
+    const auto special = [&](flink::SpecialKey value) {
+        return std::pair<std::uint32_t, flink::KeyKind>{
+            static_cast<std::uint32_t>(value), flink::KeyKind::Special};
+    };
+    switch (key) {
+    case SDLK_ESCAPE: return special(flink::SpecialKey::Escape);
+    case SDLK_RETURN: return special(flink::SpecialKey::Enter);
+    case SDLK_BACKSPACE: return special(flink::SpecialKey::Backspace);
+    case SDLK_TAB: return special(flink::SpecialKey::Tab);
+    case SDLK_DELETE: return special(flink::SpecialKey::Delete);
+    case SDLK_INSERT: return special(flink::SpecialKey::Insert);
+    case SDLK_HOME: return special(flink::SpecialKey::Home);
+    case SDLK_END: return special(flink::SpecialKey::End);
+    case SDLK_PAGEUP: return special(flink::SpecialKey::PageUp);
+    case SDLK_PAGEDOWN: return special(flink::SpecialKey::PageDown);
+    case SDLK_LEFT: return special(flink::SpecialKey::Left);
+    case SDLK_RIGHT: return special(flink::SpecialKey::Right);
+    case SDLK_UP: return special(flink::SpecialKey::Up);
+    case SDLK_DOWN: return special(flink::SpecialKey::Down);
+    case SDLK_F1: return special(flink::SpecialKey::F1);
+    case SDLK_F2: return special(flink::SpecialKey::F2);
+    case SDLK_F3: return special(flink::SpecialKey::F3);
+    case SDLK_F4: return special(flink::SpecialKey::F4);
+    case SDLK_F5: return special(flink::SpecialKey::F5);
+    case SDLK_F6: return special(flink::SpecialKey::F6);
+    case SDLK_F7: return special(flink::SpecialKey::F7);
+    case SDLK_F8: return special(flink::SpecialKey::F8);
+    case SDLK_F9: return special(flink::SpecialKey::F9);
+    case SDLK_F10: return special(flink::SpecialKey::F10);
+    case SDLK_F11: return special(flink::SpecialKey::F11);
+    case SDLK_F12: return special(flink::SpecialKey::F12);
+    case SDLK_LSHIFT: return special(flink::SpecialKey::LeftShift);
+    case SDLK_RSHIFT: return special(flink::SpecialKey::RightShift);
+    case SDLK_LCTRL: return special(flink::SpecialKey::LeftCtrl);
+    case SDLK_RCTRL: return special(flink::SpecialKey::RightCtrl);
+    case SDLK_LALT: return special(flink::SpecialKey::LeftAlt);
+    case SDLK_RALT: return special(flink::SpecialKey::RightAlt);
+    case SDLK_LGUI: return special(flink::SpecialKey::LeftGui);
+    case SDLK_RGUI: return special(flink::SpecialKey::RightGui);
+    default: return {0, flink::KeyKind::Special};
+    }
+}
+
 void append(std::vector<std::uint8_t>& data, const void* value, std::size_t size)
 {
     const auto* bytes = static_cast<const std::uint8_t*>(value);
@@ -440,14 +488,16 @@ int main(int argc, char** argv)
                 SDL_MinimizeWindow(window);
             } else if (connected && config.input &&
                        (event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP)) {
-                const flink::InputInfo input{
-                    0, 0, 0, static_cast<std::uint8_t>(
-                        event.type == SDL_EVENT_KEY_DOWN ? 1 : 0),
-                    static_cast<std::uint16_t>(event.key.key),
-                    0, 0, 0, 0, static_cast<std::uint8_t>(
-                        (event.key.mod & SDL_KMOD_SHIFT) != 0)
-                };
-                sendInput(socketHandle, input, inputSequence++);
+                const auto [keyValue, keyKind] = logicalKey(event.key.key);
+                if (keyValue != 0) {
+                    const flink::InputInfo input{
+                        0, 0, 0,
+                        keyValue, static_cast<std::uint8_t>(keyKind),
+                        0, 0, 0, 0, 0, 0,
+                        static_cast<std::uint16_t>(event.key.mod)
+                    };
+                    sendInput(socketHandle, input, inputSequence++);
+                }
             } else if (connected && config.input && event.type == SDL_EVENT_MOUSE_MOTION) {
                 auto input = pointerPosition(event.motion.x, event.motion.y);
                 sendInput(socketHandle, input, inputSequence++);

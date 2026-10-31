@@ -119,7 +119,7 @@ cache indique encore qu’ils sont absents, supprimez `build` avant de relancer
 CMake.
 
 Le client Windows et l’agent Lubuntu doivent être reconstruits depuis le même
-commit. Le protocole actuel est la version 4 ; si Lubuntu affiche
+commit. Le protocole actuel est la version 5 ; si Lubuntu affiche
 `version incompatible`, reconstruisez aussi le client Windows.
 
 Le deuxième argument après le dossier `FLink` est le chemin explicite du
