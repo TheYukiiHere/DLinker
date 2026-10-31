@@ -46,10 +46,15 @@ endif()
 
 if (UNIX)
     find_package(X11)
-    find_package(PkgConfig)
-    if (PkgConfig_FOUND)
-        pkg_check_modules(ALSA alsa)
-    endif()
+    find_path(ALSA_INCLUDE_DIR asoundlib.h
+        PATHS /usr/include /usr/local/include
+        PATH_SUFFIXES alsa
+    )
+    find_library(ALSA_LIBRARY NAMES asound)
+    find_path(XTEST_INCLUDE_DIR X11/extensions/XTest.h
+        PATHS /usr/include /usr/local/include
+    )
+    find_library(XTEST_LIBRARY NAMES Xtst)
     add_executable(flink-agent
         src/flink_agent.cpp
     )
@@ -59,14 +64,14 @@ if (UNIX)
         target_include_directories(flink-agent PRIVATE ${X11_INCLUDE_DIR})
         target_link_libraries(flink-agent PRIVATE ${X11_LIBRARIES})
     endif()
-    find_library(XTEST_LIBRARY Xtst)
-    if (XTEST_LIBRARY)
+    if (XTEST_INCLUDE_DIR AND XTEST_LIBRARY)
         target_compile_definitions(flink-agent PRIVATE FLINK_HAS_XTEST=1)
+        target_include_directories(flink-agent PRIVATE ${XTEST_INCLUDE_DIR})
         target_link_libraries(flink-agent PRIVATE ${XTEST_LIBRARY})
     endif()
-    if (ALSA_FOUND)
+    if (ALSA_INCLUDE_DIR AND ALSA_LIBRARY)
         target_compile_definitions(flink-agent PRIVATE FLINK_HAS_ALSA=1)
-        target_include_directories(flink-agent PRIVATE ${ALSA_INCLUDE_DIRS})
-        target_link_libraries(flink-agent PRIVATE ${ALSA_LIBRARIES})
+        target_include_directories(flink-agent PRIVATE ${ALSA_INCLUDE_DIR})
+        target_link_libraries(flink-agent PRIVATE ${ALSA_LIBRARY})
     endif()
 endif()

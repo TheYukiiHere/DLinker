@@ -108,6 +108,11 @@ cmake --build build --target flink-agent
 Le journal doit afficher `resolution envoyee 1920x1080` si la configuration
 contient `screen_width=0` et `screen_height=0`.
 
+La configuration CMake recherche directement `asoundlib.h`/`libasound` et
+`XTest.h`/`libXtst`. Si les paquets sont déjà installés mais que l’ancien
+cache indique encore qu’ils sont absents, supprimez `build` avant de relancer
+CMake.
+
 Le client Windows et l’agent Lubuntu doivent être reconstruits depuis le même
 commit. Le protocole actuel est la version 2 ; si Lubuntu affiche
 `version incompatible`, reconstruisez aussi le client Windows.
