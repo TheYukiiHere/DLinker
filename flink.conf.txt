@@ -4,7 +4,7 @@ port=5002
 # 0 means the complete Linux desktop resolution.
 screen_width=0
 screen_height=0
-fps=60
+fps=120
 audio=true
 input=true
 physical_keyboard=true
