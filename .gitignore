@@ -1,0 +1,7 @@
+/build/
+/FLink/*.log
+/FLink/*.zip
+/FLink/.flink-state
+.vs/
+*.user
+*.suo
