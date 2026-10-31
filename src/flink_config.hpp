@@ -13,6 +13,7 @@ struct Config {
     int fps = 15;
     bool audio = true;
     bool input = true;
+    bool physicalKeyboard = true;
 };
 
 inline Config loadConfig(const std::string& path)
@@ -33,6 +34,7 @@ inline Config loadConfig(const std::string& path)
             else if (key == "fps") config.fps = std::stoi(value);
             else if (key == "audio") config.audio = value == "true";
             else if (key == "input") config.input = value == "true";
+            else if (key == "physical_keyboard") config.physicalKeyboard = value == "true";
         } catch (...) {
         }
 

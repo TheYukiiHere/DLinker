@@ -364,7 +364,8 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    SDL_Window* window = SDL_CreateWindow("DLinker - FLink", 1280, 720, SDL_WINDOW_RESIZABLE);
+    SDL_Window* window = SDL_CreateWindow("DLinker - FLink", 1280, 720,
+                                          SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN);
     SDL_Renderer* renderer = window == nullptr ? nullptr : SDL_CreateRenderer(window, nullptr);
     if (window == nullptr || renderer == nullptr) {
         std::cerr << "Creation de la fenetre SDL3 impossible: " << SDL_GetError() << '\n';
@@ -404,14 +405,29 @@ int main(int argc, char** argv)
     } else {
         debugMessage(kYellow, "sortie audio SDL indisponible: " + std::string(SDL_GetError()));
     }
-    if (!SDL_SetRenderLogicalPresentation(renderer, 1280, 720,
-                                          SDL_LOGICAL_PRESENTATION_LETTERBOX)) {
-        debugMessage(kYellow, "presentation logique SDL indisponible: " +
-                             std::string(SDL_GetError()));
-    }
-
     bool running = true;
     std::uint32_t inputSequence = 2000;
+    const auto pointerPosition = [&](float x, float y) {
+        flink::InputInfo input{};
+        int windowWidth = 0;
+        int windowHeight = 0;
+        SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+        const float scale = std::min(
+            static_cast<float>(windowWidth) / std::max(videoWidth, 1),
+            static_cast<float>(windowHeight) / std::max(videoHeight, 1));
+        const float renderedWidth = videoWidth * scale;
+        const float renderedHeight = videoHeight * scale;
+        const float left = (windowWidth - renderedWidth) * 0.5f;
+        const float top = (windowHeight - renderedHeight) * 0.5f;
+        input.absoluteX = static_cast<std::int32_t>(
+            std::clamp((x - left) / std::max(scale, 0.001f), 0.0f,
+                       static_cast<float>(std::max(videoWidth - 1, 0))));
+        input.absoluteY = static_cast<std::int32_t>(
+            std::clamp((y - top) / std::max(scale, 0.001f), 0.0f,
+                       static_cast<float>(std::max(videoHeight - 1, 0))));
+        input.hasAbsolutePosition = videoWidth > 0 && videoHeight > 0 ? 1 : 0;
+        return input;
+    };
     while (running) {
         SDL_Event event{};
         while (SDL_PollEvent(&event)) {
@@ -427,25 +443,20 @@ int main(int argc, char** argv)
                 const flink::InputInfo input{
                     0, 0, 0, static_cast<std::uint8_t>(
                         event.type == SDL_EVENT_KEY_DOWN ? 1 : 0),
-                    static_cast<std::uint16_t>(event.key.scancode)
+                    static_cast<std::uint16_t>(event.key.scancode + 8),
+                    0, 0, 0, 0, 0
                 };
                 sendInput(socketHandle, input, inputSequence++);
             } else if (connected && config.input && event.type == SDL_EVENT_MOUSE_MOTION) {
-                const flink::InputInfo input{
-                    static_cast<std::int32_t>(event.motion.xrel),
-                    static_cast<std::int32_t>(event.motion.yrel),
-                    0, 0, 0
-                };
+                auto input = pointerPosition(event.motion.x, event.motion.y);
                 sendInput(socketHandle, input, inputSequence++);
             } else if (connected && config.input &&
                        (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
                         event.type == SDL_EVENT_MOUSE_BUTTON_UP)) {
-                const flink::InputInfo input{
-                    0, 0, 0, 0, 0,
-                    static_cast<std::uint8_t>(event.button.button),
-                    static_cast<std::uint8_t>(
-                        event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ? 1 : 0)
-                };
+                auto input = pointerPosition(event.button.x, event.button.y);
+                input.mouseButton = static_cast<std::uint8_t>(event.button.button);
+                input.buttonDown = static_cast<std::uint8_t>(
+                        event.type == SDL_EVENT_MOUSE_BUTTON_DOWN ? 1 : 0);
                 sendInput(socketHandle, input, inputSequence++);
             }
         }
@@ -499,7 +510,19 @@ int main(int argc, char** argv)
         SDL_SetRenderDrawColor(renderer, connected ? 25 : 70, connected ? 100 : 35, 55, 255);
         SDL_RenderClear(renderer);
         if (videoTexture != nullptr) {
-            SDL_RenderTexture(renderer, videoTexture, nullptr, nullptr);
+            int windowWidth = 0;
+            int windowHeight = 0;
+            SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+            const float scale = std::min(
+                static_cast<float>(windowWidth) / videoWidth,
+                static_cast<float>(windowHeight) / videoHeight);
+            const SDL_FRect destination{
+                (windowWidth - videoWidth * scale) * 0.5f,
+                (windowHeight - videoHeight * scale) * 0.5f,
+                videoWidth * scale,
+                videoHeight * scale
+            };
+            SDL_RenderTexture(renderer, videoTexture, nullptr, &destination);
         }
         SDL_RenderPresent(renderer);
         SDL_Delay(16);

@@ -87,6 +87,11 @@ Les paramètres sont dans [flink.conf.txt](./flink.conf.txt), copié dans le
 dossier `FLink` si nécessaire : IP, port, largeur/hauteur (`0` = écran
 complet), FPS, audio et entrées. Le client envoie les mouvements de souris
 et les touches lorsque la fenêtre est active.
+La fenêtre Windows est en plein écran. Les coordonnées souris sont converties
+depuis la zone réellement rendue vers les coordonnées de l’écran Linux, même
+si les proportions diffèrent. `physical_keyboard=true` transmet les positions
+physiques des touches : cela évite de mélanger les dispositions QWERTY
+Windows et AZERTY Linux.
 
 Copiez ce fichier dans les deux dossiers FLink avant le lancement :
 

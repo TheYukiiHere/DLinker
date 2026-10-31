@@ -7,3 +7,4 @@ screen_height=0
 fps=60
 audio=true
 input=true
+physical_keyboard=true

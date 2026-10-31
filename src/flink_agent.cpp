@@ -105,7 +105,9 @@ bool sendVideoFrame(int socketHandle, std::uint32_t sequence, Display* display,
 #if defined(FLINK_HAS_X11) && defined(FLINK_HAS_XTEST)
 void injectInput(Display* display, const flink::InputInfo& input)
 {
-    if (input.mouseDx != 0 || input.mouseDy != 0) {
+    if (input.hasAbsolutePosition) {
+        XTestFakeMotionEvent(display, -1, input.absoluteX, input.absoluteY, CurrentTime);
+    } else if (input.mouseDx != 0 || input.mouseDy != 0) {
         Window root = DefaultRootWindow(display);
         Window current = root;
         int rootX = 0, rootY = 0, winX = 0, winY = 0;
@@ -114,7 +116,8 @@ void injectInput(Display* display, const flink::InputInfo& input)
         XTestFakeMotionEvent(display, -1, rootX + input.mouseDx, rootY + input.mouseDy, CurrentTime);
     }
     if (input.key != 0) {
-        XTestFakeKeyEvent(display, input.key, input.keyDown != 0, CurrentTime);
+        XTestFakeKeyEvent(display, static_cast<unsigned int>(input.key),
+                          input.keyDown != 0, CurrentTime);
     }
     if (input.mouseButton != 0) {
         XTestFakeButtonEvent(display, input.mouseButton, input.buttonDown != 0, CurrentTime);
